@@ -1,6 +1,6 @@
 # Home Assistant config backup
 
-This repo exists as a simple cloud backup of my Home Assistant configuration, which controls things such as Sonoff TRVZBs (thermostatic radiator valves communicating over Zigbee). It is also a showcase of what was needed to get things to function in my household, which primarily runs through Apple HomeKit.
+This repo exists as a simple cloud backup of my Home Assistant configuration, which controls things such as Sonoff TRVZBs (thermostatic radiator valves communicating over Zigbee). It is also a showcase of what was needed to get things to function in my household, which primarily runs through Apple HomeKit. I have this running as part of a Docker container on a low(ish)-power machine also hosting other services via Docker, but this can equally be used in a bare-metal deployment.
 
 The `configuration.yaml` and `automations.yaml` files are the main stars of the show in this repository (this list will change as I integrate more fun things into Home Assistant that require custom logic).
 
