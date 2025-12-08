@@ -1,0 +1,214 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Helper toggles for proxy thermostats to use as virtual heaters
+input_boolean:
+  heating_first_floor_overview:
+    name: "Heating First Floor Overview"
+  heating_lukes_bedroom:
+    name: "Heating Luke's Bedroom"
+  heating_sophies_bedroom:
+    name: "Heating Sophie's Bedroom"
+  heating_sophies_reading_room:
+    name: "Heating Sophie's Reading Room"
+  heating_ground_floor_overview:
+    name: "Heating Ground Floor Overview"
+  heating_living_room:
+    name: "Heating Living Room"
+  heating_kitchen:
+    name: "Heating Kitchen"
+  heating_hall:
+    name: "Heating Hall"
+  heating_spare_room:
+    name: "Heating Spare Room"
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+# Split configuration into sub-files for neatness
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+####################################################
+# Template Sensors
+####################################################
+template:
+  - sensor:
+      # Coldest temp on the ground floor (for overview thermostat)
+      - name: "Ground Floor Minimum Temperature"
+        unique_id: ground_floor_min_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        # --- THIS IS THE ROBUST TEMPLATE ---
+        state: >
+          {% set sensors = [
+            states('sensor.living_room_tp357_temperature'),
+            states('sensor.kitchen_tp357_temperature'),
+            states('sensor.hall_tp357_temperature'),
+            states('sensor.spare_room_tp357_temperature')
+          ] %}
+          {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
+          {{ temps | min if temps else 50 }}
+        availability: >
+          {% set sensors = [
+            states('sensor.living_room_tp357_temperature'),
+            states('sensor.kitchen_tp357_temperature'),
+            states('sensor.hall_tp357_temperature'),
+            states('sensor.spare_room_tp357_temperature')
+          ] %}
+          {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
+          {{ temps | length > 0 }}
+
+      # Coldest temp on the first floor (for overview thermostat)
+      - name: "First Floor Minimum Temperature"
+        unique_id: first_floor_min_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        # --- THIS IS THE ROBUST TEMPLATE ---
+        state: >
+          {% set sensors = [
+            states('sensor.lukes_bedroom_tp357_temperature'),
+            states('sensor.sophies_bedroom_tp357_temperature'),
+            states('sensor.sophies_reading_room_tp357_temperature')
+          ] %}
+          {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
+          {{ temps | min if temps else 50 }}
+        availability: >
+          {% set sensors = [
+            states('sensor.lukes_bedroom_tp357_temperature'),
+            states('sensor.sophies_bedroom_tp357_temperature'),
+            states('sensor.sophies_reading_room_tp357_temperature')
+          ] %}
+          {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
+          {{ temps | length > 0 }}
+
+####################################################
+# Climate Entities
+####################################################
+climate:
+  ####################################################
+  # Ground Floor Overview Thermostat
+  ####################################################
+  - platform: generic_thermostat
+    name: Ground Floor Heating
+    heater: input_boolean.heating_ground_floor_overview
+    target_sensor: sensor.ground_floor_minimum_temperature
+    min_temp: 15.0
+    max_temp: 28.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.2
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  ####################################################
+  # First Floor Overview Thermostat
+  ####################################################
+  - platform: generic_thermostat
+    name: First Floor Heating
+    heater: input_boolean.heating_first_floor_overview
+    target_sensor: sensor.first_floor_minimum_temperature
+    min_temp: 15.0
+    max_temp: 28.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.2
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  ####################################################
+  # First Floor Proxy Thermostats
+  ####################################################
+  - platform: generic_thermostat
+    name: Luke's Bedroom Heating
+    heater: input_boolean.heating_lukes_bedroom
+    target_sensor: sensor.lukes_bedroom_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Sophie's Bedroom Heating
+    heater: input_boolean.heating_sophies_bedroom
+    target_sensor: sensor.sophies_bedroom_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Sophie's Reading Room Heating
+    heater: input_boolean.heating_sophies_reading_room
+    target_sensor: sensor.sophies_reading_room_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  ####################################################
+  # Ground Floor Proxy Thermostats
+  ####################################################
+  - platform: generic_thermostat
+    name: Living Room Heating
+    heater: input_boolean.heating_living_room
+    target_sensor: sensor.living_room_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Kitchen Heating
+    heater: input_boolean.heating_kitchen
+    target_sensor: sensor.kitchen_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Hall Heating
+    heater: input_boolean.heating_hall
+    target_sensor: sensor.hall_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+  - platform: generic_thermostat
+    name: Spare Room Heating
+    heater: input_boolean.heating_spare_room
+    target_sensor: sensor.spare_room_tp357_temperature
+    min_temp: 15.0
+    max_temp: 25.0
+    ac_mode: false
+    target_temp: 18.0
+    cold_tolerance: 0.0
+    hot_tolerance: 0.2
+    precision: 0.1
+
+####################################################
+# Scheduler integration (from HACS)
+####################################################
+scheduler:

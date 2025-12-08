@@ -1,0 +1,661 @@
+####################################################
+# Heat Demand -> Control Boiler Relays & UI
+# This automation is the core controller for the FIRST floor.
+####################################################
+- id: 'control_first_floor_relay_and_ui'
+  alias: "Control First Floor Relay & UI Based on Heat Demand"
+  trigger:
+    - platform: state
+      entity_id:
+        - climate.luke_s_bedroom_heating
+        - climate.sophie_s_bedroom_heating
+        - climate.sophie_s_reading_room_heating
+      attribute: hvac_action
+      to:
+        - "heating"
+        - "idle"
+  action:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ is_state_attr('climate.luke_s_bedroom_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.sophie_s_bedroom_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.sophie_s_reading_room_heating', 'hvac_action', 'heating') }}
+          sequence:
+            - service: switch.turn_on
+              target:
+                entity_id: switch.first_floor_heating
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.heating_first_floor_overview
+      default:
+        - service: switch.turn_off
+          target:
+            entity_id: switch.first_floor_heating
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.heating_first_floor_overview
+
+####################################################
+# Heat Demand -> Control Boiler Relays & UI
+# This automation is the core controller for the GROUND floor.
+####################################################
+- id: 'control_ground_floor_relay_and_ui'
+  alias: "Control Ground Floor Relay & UI Based on Heat Demand"
+  trigger:
+    - platform: state
+      entity_id:
+        - climate.living_room_heating
+        - climate.kitchen_heating
+        - climate.hall_heating
+        - climate.spare_room_heating
+      attribute: hvac_action
+      to:
+        - "heating"
+        - "idle"
+  action:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ is_state_attr('climate.living_room_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.kitchen_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.hall_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.spare_room_heating', 'hvac_action', 'heating') }}
+          sequence:
+            - service: switch.turn_on
+              target:
+                entity_id: switch.ground_floor_heating
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.heating_ground_floor_overview
+      default:
+        - service: switch.turn_off
+          target:
+            entity_id: switch.ground_floor_heating
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.heating_ground_floor_overview
+
+####################################################
+# Overview thermostat -> Sync Down to Proxies (FIRST FLOOR)
+####################################################
+- id: 'sync_overview_temp_down_to_proxies'
+  alias: "First Floor Heating → Sync to All Proxies"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.first_floor_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: >
+        {% set overview_temp = state_attr('climate.first_floor_heating', 'temperature') %}
+        {% set max_proxy_temp = [ state_attr('climate.luke_s_bedroom_heating', 'temperature') | float(0),
+                                  state_attr('climate.sophie_s_bedroom_heating', 'temperature') | float(0),
+                                  state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0) ] | max %}
+        {{ overview_temp != max_proxy_temp }}
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.luke_s_bedroom_heating
+          - climate.sophie_s_bedroom_heating
+          - climate.sophie_s_reading_room_heating
+      data:
+        temperature: "{{ state_attr('climate.first_floor_heating', 'temperature') }}"
+
+####################################################
+# Overview thermostat -> Sync Down to Proxies (GROUND FLOOR)
+####################################################
+- id: 'sync_ground_floor_overview_temp_down_to_proxies'
+  alias: "Ground Floor Heating → Sync to All Proxies"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.ground_floor_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: >
+        {% set overview_temp = state_attr('climate.ground_floor_heating', 'temperature') %}
+        {% set max_proxy_temp = [ state_attr('climate.living_room_heating', 'temperature') | float(0),
+                                  state_attr('climate.kitchen_heating', 'temperature') | float(0),
+                                  state_attr('climate.hall_heating', 'temperature') | float(0),
+                                  state_attr('climate.spare_room_heating', 'temperature') | float(0) ] | max %}
+        {{ overview_temp != max_proxy_temp }}
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.living_room_heating
+          - climate.kitchen_heating
+          - climate.hall_heating
+          - climate.spare_room_heating
+      data:
+        temperature: "{{ state_attr('climate.ground_floor_heating', 'temperature') }}"
+
+####################################################
+# Proxies -> Sync Max Setpoint back up to Overview (FIRST FLOOR)
+####################################################
+- id: 'sync_proxies_max_temp_up_to_overview'
+  alias: "First Floor Proxies → Sync Max Temp to Overview"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id:
+        - climate.luke_s_bedroom_heating
+        - climate.sophie_s_bedroom_heating
+        - climate.sophie_s_reading_room_heating
+      attribute: temperature
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.first_floor_heating
+      data:
+        temperature: >
+          {{ [ state_attr('climate.luke_s_bedroom_heating', 'temperature') | float(0),
+               state_attr('climate.sophie_s_bedroom_heating', 'temperature') | float(0),
+               state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0) ] | max }}
+
+####################################################
+# Proxies -> Sync Max Setpoint back up to Overview (GROUND FLOOR)
+####################################################
+- id: 'sync_ground_floor_proxies_max_temp_up_to_overview'
+  alias: "Ground Floor Proxies → Sync Max Temp to Overview"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id:
+        - climate.living_room_heating
+        - climate.kitchen_heating
+        - climate.hall_heating
+        - climate.spare_room_heating
+      attribute: temperature
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.ground_floor_heating
+      data:
+        temperature: >
+          {{ [ state_attr('climate.living_room_heating', 'temperature') | float(0),
+               state_attr('climate.kitchen_heating', 'temperature') | float(0),
+               state_attr('climate.hall_heating', 'temperature') | float(0),
+               state_attr('climate.spare_room_heating', 'temperature') | float(0) ] | max }}
+
+#####################################################################
+# External Sensor -> Push Temperature Reading to Physical TRV (FIRST FLOOR)
+#####################################################################
+- id: 'push_lukes_bedroom_external_temp_to_trv'
+  alias: "Luke's Bedroom: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.lukes_bedroom_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/lukes_bedroom_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+- id: 'push_sophies_bedroom_external_temp_to_trv'
+  alias: "Sophie's Bedroom: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.sophies_bedroom_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/sophies_bedroom_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+- id: 'push_sophies_reading_room_external_temp_to_trv'
+  alias: "Sophie's Reading Room: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.sophies_reading_room_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/sophies_reading_room_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+#####################################################################
+# External Sensor -> Push Temperature Reading to Physical TRV (GROUND FLOOR)
+#####################################################################
+- id: 'push_living_room_external_temp_to_trv'
+  alias: "Living Room: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.living_room_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/living_room_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+- id: 'push_kitchen_external_temp_to_trv'
+  alias: "Kitchen: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.kitchen_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/kitchen_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+- id: 'push_hall_external_temp_to_trv'
+  alias: "Hall: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.hall_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/hall_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+- id: 'push_spare_room_external_temp_to_trv'
+  alias: "Spare Room: Push TP357 Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.spare_room_tp357_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/spare_room_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+####################################################
+# Proxy & TRV Two-Way Syncing Logic (FIRST FLOOR)
+####################################################
+
+# ===================================================
+# Luke's Bedroom
+# ===================================================
+- id: 'lukes_bedroom_sync_hvac_mode_proxy_to_trv'
+  alias: "Luke's Bedroom: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.luke_s_bedroom_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.lukes_bedroom_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'lukes_bedroom_proxy_temp_to_trv_temp'
+  alias: "Luke's Bedroom: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.luke_s_bedroom_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.lukes_bedroom_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.lukes_bedroom_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'lukes_bedroom_trv_temp_to_proxy_temp'
+  alias: "Luke's Bedroom: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.lukes_bedroom_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.luke_s_bedroom_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.luke_s_bedroom_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Sophie's Bedroom
+# ===================================================
+- id: 'sophies_bedroom_sync_hvac_mode_proxy_to_trv'
+  alias: "Sophie's Bedroom: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.sophie_s_bedroom_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.sophies_bedroom_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'sophies_bedroom_proxy_temp_to_trv_temp'
+  alias: "Sophie's Bedroom: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.sophie_s_bedroom_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.sophies_bedroom_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.sophies_bedroom_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'sophies_bedroom_trv_temp_to_proxy_temp'
+  alias: "Sophie's Bedroom: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.sophies_bedroom_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.sophie_s_bedroom_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.sophie_s_bedroom_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Sophie's Reading Room
+# ===================================================
+- id: 'sophies_reading_room_sync_hvac_mode_proxy_to_trv'
+  alias: "Sophie's Reading Room: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.sophie_s_reading_room_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.sophies_reading_room_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'sophies_reading_room_proxy_temp_to_trv_temp'
+  alias: "Sophie's Reading Room: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.sophie_s_reading_room_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.sophies_reading_room_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.sophies_reading_room_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'sophies_reading_room_trv_temp_to_proxy_temp'
+  alias: "Sophie's Reading Room: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.sophies_reading_room_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.sophie_s_reading_room_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.sophie_s_reading_room_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+####################################################
+# Proxy & TRV Two-Way Syncing Logic (GROUND FLOOR)
+####################################################
+
+# ===================================================
+# Living Room
+# ===================================================
+- id: 'living_room_sync_hvac_mode_proxy_to_trv'
+  alias: "Living Room: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.living_room_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.living_room_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'living_room_proxy_temp_to_trv_temp'
+  alias: "Living Room: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.living_room_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.living_room_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.living_room_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'living_room_trv_temp_to_proxy_temp'
+  alias: "Living Room: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.living_room_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.living_room_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.living_room_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Kitchen
+# ===================================================
+- id: 'kitchen_sync_hvac_mode_proxy_to_trv'
+  alias: "Kitchen: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.kitchen_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.kitchen_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'kitchen_proxy_temp_to_trv_temp'
+  alias: "Kitchen: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.kitchen_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.kitchen_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.kitchen_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'kitchen_trv_temp_to_proxy_temp'
+  alias: "Kitchen: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.kitchen_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.kitchen_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.kitchen_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Hall
+# ===================================================
+- id: 'hall_sync_hvac_mode_proxy_to_trv'
+  alias: "Hall: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.hall_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.hall_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'hall_proxy_temp_to_trv_temp'
+  alias: "Hall: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.hall_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.hall_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.hall_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'hall_trv_temp_to_proxy_temp'
+  alias: "Hall: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.hall_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.hall_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.hall_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Spare Room
+# ===================================================
+- id: 'spare_room_sync_hvac_mode_proxy_to_trv'
+  alias: "Spare Room: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.spare_room_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.spare_room_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'spare_room_proxy_temp_to_trv_temp'
+  alias: "Spare Room: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.spare_room_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.spare_room_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.spare_room_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'spare_room_trv_temp_to_proxy_temp'
+  alias: "Spare Room: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.spare_room_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.spare_room_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.spare_room_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
