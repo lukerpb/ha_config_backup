@@ -55,6 +55,9 @@
         - "heating"
         - "idle"
   action:
+    # ----------------------------------------------------------------
+    # LOGIC 1: PHYSICAL RELAY CONTROL (Includes Spare Room)
+    # ----------------------------------------------------------------
     - choose:
         - conditions:
             - condition: template
@@ -67,13 +70,27 @@
             - service: switch.turn_on
               target:
                 entity_id: switch.ground_floor_heating
-            - service: input_boolean.turn_on
-              target:
-                entity_id: input_boolean.heating_ground_floor_overview
       default:
         - service: switch.turn_off
           target:
             entity_id: switch.ground_floor_heating
+
+    # ----------------------------------------------------------------
+    # LOGIC 2: OVERVIEW UI STATUS (Excludes Spare Room)
+    # ----------------------------------------------------------------
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ is_state_attr('climate.living_room_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.kitchen_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.hall_heating', 'hvac_action', 'heating') }}
+                {# Spare Room removed from this check #}
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.heating_ground_floor_overview
+      default:
         - service: input_boolean.turn_off
           target:
             entity_id: input_boolean.heating_ground_floor_overview
@@ -110,7 +127,7 @@
 # Overview thermostat -> Sync Down to Proxies (GROUND FLOOR)
 ####################################################
 - id: 'sync_ground_floor_overview_temp_down_to_proxies'
-  alias: "Ground Floor Heating → Sync to All Proxies"
+  alias: "Ground Floor Heating → Sync to All Proxies (Excl Spare)"
   mode: restart
   trigger:
     - platform: state
@@ -120,10 +137,11 @@
     - condition: template
       value_template: >
         {% set overview_temp = state_attr('climate.ground_floor_heating', 'temperature') %}
-        {% set max_proxy_temp = [ state_attr('climate.living_room_heating', 'temperature') | float(0),
-                                  state_attr('climate.kitchen_heating', 'temperature') | float(0),
-                                  state_attr('climate.hall_heating', 'temperature') | float(0),
-                                  state_attr('climate.spare_room_heating', 'temperature') | float(0) ] | max %}
+        {% set max_proxy_temp = [
+          state_attr('climate.living_room_heating', 'temperature') | float(0),
+          state_attr('climate.kitchen_heating', 'temperature') | float(0),
+          state_attr('climate.hall_heating', 'temperature') | float(0)
+        ] | max %}
         {{ overview_temp != max_proxy_temp }}
   action:
     - service: climate.set_temperature
@@ -132,7 +150,6 @@
           - climate.living_room_heating
           - climate.kitchen_heating
           - climate.hall_heating
-          - climate.spare_room_heating
       data:
         temperature: "{{ state_attr('climate.ground_floor_heating', 'temperature') }}"
 
@@ -163,7 +180,7 @@
 # Proxies -> Sync Max Setpoint back up to Overview (GROUND FLOOR)
 ####################################################
 - id: 'sync_ground_floor_proxies_max_temp_up_to_overview'
-  alias: "Ground Floor Proxies → Sync Max Temp to Overview"
+  alias: "Ground Floor Proxies → Sync Max Temp to Overview (Excl Spare)"
   mode: restart
   trigger:
     - platform: state
@@ -171,7 +188,6 @@
         - climate.living_room_heating
         - climate.kitchen_heating
         - climate.hall_heating
-        - climate.spare_room_heating
       attribute: temperature
   action:
     - service: climate.set_temperature
@@ -179,10 +195,11 @@
         entity_id: climate.ground_floor_heating
       data:
         temperature: >
-          {{ [ state_attr('climate.living_room_heating', 'temperature') | float(0),
-               state_attr('climate.kitchen_heating', 'temperature') | float(0),
-               state_attr('climate.hall_heating', 'temperature') | float(0),
-               state_attr('climate.spare_room_heating', 'temperature') | float(0) ] | max }}
+          {{ [
+            state_attr('climate.living_room_heating', 'temperature') | float(0),
+            state_attr('climate.kitchen_heating', 'temperature') | float(0),
+            state_attr('climate.hall_heating', 'temperature') | float(0)
+          ] | max }}
 
 #####################################################################
 # External Sensor -> Push Temperature Reading to Physical TRV (FIRST FLOOR)

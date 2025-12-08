@@ -41,13 +41,11 @@ template:
         unique_id: ground_floor_min_temperature
         unit_of_measurement: "°C"
         device_class: temperature
-        # --- THIS IS THE ROBUST TEMPLATE ---
         state: >
           {% set sensors = [
             states('sensor.living_room_tp357_temperature'),
             states('sensor.kitchen_tp357_temperature'),
-            states('sensor.hall_tp357_temperature'),
-            states('sensor.spare_room_tp357_temperature')
+            states('sensor.hall_tp357_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
           {{ temps | min if temps else 50 }}
@@ -55,8 +53,7 @@ template:
           {% set sensors = [
             states('sensor.living_room_tp357_temperature'),
             states('sensor.kitchen_tp357_temperature'),
-            states('sensor.hall_tp357_temperature'),
-            states('sensor.spare_room_tp357_temperature')
+            states('sensor.hall_tp357_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
           {{ temps | length > 0 }}
@@ -66,7 +63,6 @@ template:
         unique_id: first_floor_min_temperature
         unit_of_measurement: "°C"
         device_class: temperature
-        # --- THIS IS THE ROBUST TEMPLATE ---
         state: >
           {% set sensors = [
             states('sensor.lukes_bedroom_tp357_temperature'),
