@@ -94,8 +94,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.2
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -109,8 +109,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.2
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -122,10 +122,10 @@ climate:
     heater: input_boolean.heating_lukes_bedroom
     target_sensor: sensor.lukes_bedroom_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -134,10 +134,10 @@ climate:
     heater: input_boolean.heating_sophies_bedroom
     target_sensor: sensor.sophies_bedroom_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -146,10 +146,10 @@ climate:
     heater: input_boolean.heating_sophies_reading_room
     target_sensor: sensor.sophies_reading_room_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -161,10 +161,10 @@ climate:
     heater: input_boolean.heating_living_room
     target_sensor: sensor.living_room_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -173,10 +173,10 @@ climate:
     heater: input_boolean.heating_kitchen
     target_sensor: sensor.kitchen_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -185,10 +185,10 @@ climate:
     heater: input_boolean.heating_hall
     target_sensor: sensor.hall_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -197,10 +197,10 @@ climate:
     heater: input_boolean.heating_spare_room
     target_sensor: sensor.spare_room_tp357_temperature
     min_temp: 15.0
-    max_temp: 25.0
+    max_temp: 28.0
     ac_mode: false
-    target_temp: 18.0
-    cold_tolerance: 0.0
+    target_temp: 19.0
+    cold_tolerance: 0.3
     hot_tolerance: 0.2
     precision: 0.1
 
