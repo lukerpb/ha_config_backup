@@ -95,7 +95,7 @@ climate:
     max_temp: 28.0
     ac_mode: false
     target_temp: 19.0
-    cold_tolerance: 0.3
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -109,8 +109,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 19.0
-    cold_tolerance: 0.3
+    target_temp: 17.0
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -124,8 +124,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 19.0
-    cold_tolerance: 0.3
+    target_temp: 17.0
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -136,8 +136,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 19.0
-    cold_tolerance: 0.3
+    target_temp: 17.0
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -148,8 +148,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 19.0
-    cold_tolerance: 0.3
+    target_temp: 17.0
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -164,7 +164,7 @@ climate:
     max_temp: 28.0
     ac_mode: false
     target_temp: 19.0
-    cold_tolerance: 0.3
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -176,7 +176,7 @@ climate:
     max_temp: 28.0
     ac_mode: false
     target_temp: 19.0
-    cold_tolerance: 0.3
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -188,7 +188,7 @@ climate:
     max_temp: 28.0
     ac_mode: false
     target_temp: 19.0
-    cold_tolerance: 0.3
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
@@ -199,8 +199,8 @@ climate:
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
-    target_temp: 19.0
-    cold_tolerance: 0.3
+    target_temp: 16.0
+    cold_tolerance: 0.0
     hot_tolerance: 0.2
     precision: 0.1
 
