@@ -247,55 +247,63 @@
 # External Sensor -> Push Temperature Reading to Physical TRV (GROUND FLOOR)
 #####################################################################
 - id: 'push_living_room_external_temp_to_trv'
-  alias: "Living Room: Push TP357 Temp to TRV"
+  alias: "Living Room: Push TP357 Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
       entity_id: sensor.living_room_tp357_temperature
+    - platform: time_pattern
+      minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/living_room_trv/set/external_temperature_input"
-        payload: "{{ trigger.to_state.state }}"
+        payload: "{{ states('sensor.living_room_tp357_temperature') }}"
         retain: false
 
 - id: 'push_kitchen_external_temp_to_trv'
-  alias: "Kitchen: Push TP357 Temp to TRV"
+  alias: "Kitchen: Push TP357 Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
       entity_id: sensor.kitchen_tp357_temperature
+    - platform: time_pattern
+      minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/kitchen_trv/set/external_temperature_input"
-        payload: "{{ trigger.to_state.state }}"
+        payload: "{{ states('sensor.kitchen_tp357_temperature') }}"
         retain: false
 
 - id: 'push_hall_external_temp_to_trv'
-  alias: "Hall: Push TP357 Temp to TRV"
+  alias: "Hall: Push TP357 Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
       entity_id: sensor.hall_tp357_temperature
+    - platform: time_pattern
+      minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/hall_trv/set/external_temperature_input"
-        payload: "{{ trigger.to_state.state }}"
+        payload: "{{ states('sensor.hall_tp357_temperature') }}"
         retain: false
 
 - id: 'push_spare_room_external_temp_to_trv'
-  alias: "Spare Room: Push TP357 Temp to TRV"
+  alias: "Spare Room: Push TP357 Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
       entity_id: sensor.spare_room_tp357_temperature
+    - platform: time_pattern
+      minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/spare_room_trv/set/external_temperature_input"
-        payload: "{{ trigger.to_state.state }}"
+        payload: "{{ states('sensor.spare_room_tp357_temperature') }}"
         retain: false
 
 ####################################################
