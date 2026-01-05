@@ -43,16 +43,16 @@ template:
         device_class: temperature
         state: >
           {% set sensors = [
-            states('sensor.living_room_tp357_temperature'),
-            states('sensor.kitchen_tp357_temperature'),
+            states('sensor.living_room_zb02p_temperature'),
+            states('sensor.kitchen_zb02p_temperature'),
             states('sensor.hall_tp357_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
           {{ temps | min if temps else 50 }}
         availability: >
           {% set sensors = [
-            states('sensor.living_room_tp357_temperature'),
-            states('sensor.kitchen_tp357_temperature'),
+            states('sensor.living_room_zb02p_temperature'),
+            states('sensor.kitchen_zb02p_temperature'),
             states('sensor.hall_tp357_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
@@ -159,7 +159,7 @@ climate:
   - platform: generic_thermostat
     name: Living Room Heating
     heater: input_boolean.heating_living_room
-    target_sensor: sensor.living_room_tp357_temperature
+    target_sensor: sensor.living_room_zb02p_temperature
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
@@ -171,7 +171,7 @@ climate:
   - platform: generic_thermostat
     name: Kitchen Heating
     heater: input_boolean.heating_kitchen
-    target_sensor: sensor.kitchen_tp357_temperature
+    target_sensor: sensor.kitchen_zb02p_temperature
     min_temp: 15.0
     max_temp: 28.0
     ac_mode: false
