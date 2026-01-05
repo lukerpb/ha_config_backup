@@ -1,6 +1,6 @@
 # Home Assistant config backup
 
-This repo exists as a simple cloud backup of my Home Assistant configuration, which controls things such as Sonoff TRVZBs (thermostatic radiator valves communicating over Zigbee). It is also a showcase of what was needed to get things to function in my household, which primarily runs through Apple HomeKit. I have this running as part of a Docker container on a low(ish)-power machine also hosting other services via Docker, but this can equally be used in a bare-metal deployment.
+This repo exists as a simple cloud backup of my Home Assistant configuration, which controls things such as Sonoff TRVZBs (thermostatic radiator valves communicating over Zigbee) and SNZB-02Ps. It is also a showcase of what was needed to get things to function in my household, which primarily runs through Apple HomeKit. I have this running as part of a Docker container on a low(ish)-power machine also hosting other services via Docker, but this can equally be used in a bare-metal deployment.
 
 The `configuration.yaml` and `automations.yaml` files are the main stars of the show in this repository, as they form the powerhouse behind what gets exposed to Home Assistant and how they operate. The information below will change as I integrate more fun things into Home Assistant that require custom logic. Use the contents if this list starts getting unwieldy!
 
@@ -9,7 +9,7 @@ This was the main motivator for starting the Home Assistant project. I saw vario
 
 The contents of the YAML files mentioned do the following:
 - allow individual control of each TRVZB device as a 'virtual' thermostat in Apple Home
-- read temperature input from ThermoPro TP357 devices located in each room, which
+- read temperature input from ~~ThermoPro TP357~~ Sonoff SNZB-02P devices located in each room, which
   - acts as the main temperature sensor for the room, alongside humidity which isn't actively used
   - serves as the temperature input for each TRVZB device, seeing as using the internal sensors tends to be unreliable
 - allow a 'sync-down' from a generic 'virtual' thermostat for each floor to the TRVZB devices on that floor
@@ -39,3 +39,7 @@ The system here is generally scalable mainly thanks to how literal the YAML file
 - When exposing climate controls to your home automation system (e.g. HomeKit), make sure Home Assistant is exposing the proxies rather than the TRVs directly. This is mainly down to the TRVs typically also having an 'auto' control, which ignores the carefully-crafted schedules made elsewhere, and stops users accidentally setting it by just offering 'heat' or 'off'.
 - Make sure that if you're using TRVs with a 'temperature accuracy' control (or something like it) in the 'Exposes' tab, make sure it matches or slightly exceeds whatever the proxies for each room are set up to, but ideally have both at the smallest value possible.
   - This controls how much the temperature drops by before the TRVs open and let the heat in. If the proxies have a `cold_tolerance` value lower than this (say for example the value is `0.2` but the 'temperature accuracy' is `-1.0`, the boiler would fire up before the valves open, causing a pressure build-up which might damage your pump if you don't have a bypass.
+- If using Zigbee thermometers connected to Zigbee2MQTT, head to the 'Reporting' tab for each device and under the `Temperature` and `Humidity` clusters for `measuredValue`, set it to values you're comfortable with, with the caveat that more updates by the device means more battery usage. The values below are the lowest the values should be set to before excessive battery usage causes diminishing returns appear with sensor accuracy.
+  - `Min rep interval` is how fast you'll allow the sensor to report updates, so a value of `10` means it'll update up to once every 10 seconds.
+  - `Max rep interval` is how slow you'll allow the sensor to report updates, so a value of `300` means it'll update at least once every 5 minutes (300 seconds).
+  - `Min rep change` is the smallest increment change the sensor will send updates for - `1` is equivalent to `0.01`, so for example with temperature, a value of `10` will ensure a update is reported if the temperature shifts by 0.1°C.
