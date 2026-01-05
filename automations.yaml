@@ -247,33 +247,33 @@
 # External Sensor -> Push Temperature Reading to Physical TRV (GROUND FLOOR)
 #####################################################################
 - id: 'push_living_room_external_temp_to_trv'
-  alias: "Living Room: Push TP357 Temp to TRV (Heartbeat)"
+  alias: "Living Room: Push Zigbee Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.living_room_tp357_temperature
+      entity_id: sensor.living_room_zb02p_temperature
     - platform: time_pattern
       minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/living_room_trv/set/external_temperature_input"
-        payload: "{{ states('sensor.living_room_tp357_temperature') }}"
+        payload: "{{ states('sensor.living_room_zb02p_temperature') }}"
         retain: false
 
 - id: 'push_kitchen_external_temp_to_trv'
-  alias: "Kitchen: Push TP357 Temp to TRV (Heartbeat)"
+  alias: "Kitchen: Push Zigbee Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.kitchen_tp357_temperature
+      entity_id: sensor.kitchen_zb02p_temperature
     - platform: time_pattern
       minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/kitchen_trv/set/external_temperature_input"
-        payload: "{{ states('sensor.kitchen_tp357_temperature') }}"
+        payload: "{{ states('sensor.kitchen_zb02p_temperature') }}"
         retain: false
 
 - id: 'push_hall_external_temp_to_trv'
