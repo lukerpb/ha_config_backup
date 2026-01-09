@@ -205,11 +205,11 @@
 # External Sensor -> Push Temperature Reading to Physical TRV (FIRST FLOOR)
 #####################################################################
 - id: 'push_lukes_bedroom_external_temp_to_trv'
-  alias: "Luke's Bedroom: Push TP357 Temp to TRV"
+  alias: "Luke's Bedroom: Push Zigbee Temp to TRV"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.lukes_bedroom_tp357_temperature
+      entity_id: sensor.lukes_bedroom_zb02p_temperature
   action:
     - service: mqtt.publish
       data:
@@ -218,11 +218,11 @@
         retain: false
 
 - id: 'push_sophies_bedroom_external_temp_to_trv'
-  alias: "Sophie's Bedroom: Push TP357 Temp to TRV"
+  alias: "Sophie's Bedroom: Push Zigbee Temp to TRV"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.sophies_bedroom_tp357_temperature
+      entity_id: sensor.sophies_bedroom_zb02p_temperature
   action:
     - service: mqtt.publish
       data:
@@ -231,11 +231,11 @@
         retain: false
 
 - id: 'push_sophies_reading_room_external_temp_to_trv'
-  alias: "Sophie's Reading Room: Push TP357 Temp to TRV"
+  alias: "Sophie's Reading Room: Push Zigbee Temp to TRV"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.sophies_reading_room_tp357_temperature
+      entity_id: sensor.sophies_reading_room_zb02p_temperature
   action:
     - service: mqtt.publish
       data:
@@ -277,33 +277,33 @@
         retain: false
 
 - id: 'push_hall_external_temp_to_trv'
-  alias: "Hall: Push TP357 Temp to TRV (Heartbeat)"
+  alias: "Hall: Push Zigbee Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.hall_tp357_temperature
+      entity_id: sensor.hall_zb02p_temperature
     - platform: time_pattern
       minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/hall_trv/set/external_temperature_input"
-        payload: "{{ states('sensor.hall_tp357_temperature') }}"
+        payload: "{{ states('sensor.hall_zb02p_temperature') }}"
         retain: false
 
 - id: 'push_spare_room_external_temp_to_trv'
-  alias: "Spare Room: Push TP357 Temp to TRV (Heartbeat)"
+  alias: "Spare Room: Push Zigbee Temp to TRV (Heartbeat)"
   mode: single
   trigger:
     - platform: state
-      entity_id: sensor.spare_room_tp357_temperature
+      entity_id: sensor.spare_room_zb02p_temperature
     - platform: time_pattern
       minutes: "/10"
   action:
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/spare_room_trv/set/external_temperature_input"
-        payload: "{{ states('sensor.spare_room_tp357_temperature') }}"
+        payload: "{{ states('sensor.spare_room_zb02p_temperature') }}"
         retain: false
 
 ####################################################
