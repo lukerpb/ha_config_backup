@@ -208,3 +208,37 @@ climate:
 # Scheduler integration (from HACS)
 ####################################################
 scheduler:
+
+####################################################
+# HomeKit Bridge Configuration
+####################################################
+homekit:
+  - name: "Heating System"
+    port: 21065
+    filter:
+      include_entities:
+        - climate.ground_floor_heating
+        - climate.first_floor_heating
+        - climate.luke_s_bedroom_heating
+        - climate.sophie_s_bedroom_heating
+        - climate.sophie_s_reading_room_heating
+        - climate.living_room_heating
+        - climate.kitchen_heating
+        - climate.hall_heating
+        - climate.spare_room_heating
+    entity_config:
+      # Link TRV batteries to Proxy Thermostats
+      climate.luke_s_bedroom_heating:
+        linked_battery_sensor: sensor.lukes_bedroom_trv_battery
+      climate.sophie_s_bedroom_heating:
+        linked_battery_sensor: sensor.sophies_bedroom_trv_battery
+      climate.sophie_s_reading_room_heating:
+        linked_battery_sensor: sensor.sophies_reading_room_trv_battery
+      climate.living_room_heating:
+        linked_battery_sensor: sensor.living_room_trv_battery
+      climate.kitchen_heating:
+        linked_battery_sensor: sensor.kitchen_trv_battery
+      climate.hall_heating:
+        linked_battery_sensor: sensor.hall_trv_battery
+      climate.spare_room_heating:
+        linked_battery_sensor: sensor.spare_room_trv_battery
