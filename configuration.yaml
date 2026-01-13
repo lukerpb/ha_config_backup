@@ -11,6 +11,8 @@ input_boolean:
     name: "Heating Sophie's Bedroom"
   heating_sophies_reading_room:
     name: "Heating Sophie's Reading Room"
+  heating_lukes_office:
+    name: "Heating Luke's Office"
   heating_ground_floor_overview:
     name: "Heating Ground Floor Overview"
   heating_living_room:
@@ -67,7 +69,8 @@ template:
           {% set sensors = [
             states('sensor.lukes_bedroom_zb02p_temperature'),
             states('sensor.sophies_bedroom_zb02p_temperature'),
-            states('sensor.sophies_reading_room_zb02p_temperature')
+            states('sensor.sophies_reading_room_zb02p_temperature'),
+            states('sensor.lukes_office_zb02p_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
           {{ temps | min if temps else 50 }}
@@ -75,7 +78,8 @@ template:
           {% set sensors = [
             states('sensor.lukes_bedroom_zb02p_temperature'),
             states('sensor.sophies_bedroom_zb02p_temperature'),
-            states('sensor.sophies_reading_room_zb02p_temperature')
+            states('sensor.sophies_reading_room_zb02p_temperature'),
+            states('sensor.lukes_office_zb02p_temperature')
           ] %}
           {% set temps = sensors | map('float', 'unavailable') | reject('==', 'unavailable') | list %}
           {{ temps | length > 0 }}
@@ -153,6 +157,18 @@ climate:
     hot_tolerance: 0.0
     precision: 0.1
 
+  - platform: generic_thermostat
+    name: Luke's Office Heating
+    heater: input_boolean.heating_lukes_office
+    target_sensor: sensor.lukes_office_zb02p_temperature
+    min_temp: 15.0
+    max_temp: 28.0
+    ac_mode: false
+    target_temp: 17.0
+    cold_tolerance: 0.1
+    hot_tolerance: 0.0
+    precision: 0.1
+
   ####################################################
   # Ground Floor Proxy Thermostats
   ####################################################
@@ -222,6 +238,7 @@ homekit:
         - climate.luke_s_bedroom_heating
         - climate.sophie_s_bedroom_heating
         - climate.sophie_s_reading_room_heating
+        - climate.luke_s_office_heating
         - climate.living_room_heating
         - climate.kitchen_heating
         - climate.hall_heating
@@ -234,6 +251,8 @@ homekit:
         linked_battery_sensor: sensor.sophies_bedroom_trv_battery
       climate.sophie_s_reading_room_heating:
         linked_battery_sensor: sensor.sophies_reading_room_trv_battery
+      climate.luke_s_office_heating:
+        linked_battery_sensor: sensor.lukes_office_trv_battery
       climate.living_room_heating:
         linked_battery_sensor: sensor.living_room_trv_battery
       climate.kitchen_heating:

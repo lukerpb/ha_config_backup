@@ -10,6 +10,7 @@
         - climate.luke_s_bedroom_heating
         - climate.sophie_s_bedroom_heating
         - climate.sophie_s_reading_room_heating
+        - climate.luke_s_office_heating
       attribute: hvac_action
       to:
         - "heating"
@@ -21,7 +22,8 @@
               value_template: >
                 {{ is_state_attr('climate.luke_s_bedroom_heating', 'hvac_action', 'heating')
                    or is_state_attr('climate.sophie_s_bedroom_heating', 'hvac_action', 'heating')
-                   or is_state_attr('climate.sophie_s_reading_room_heating', 'hvac_action', 'heating') }}
+                   or is_state_attr('climate.sophie_s_reading_room_heating', 'hvac_action', 'heating')
+                   or is_state_attr('climate.luke_s_office_heating', 'hvac_action', 'heating') }}
           sequence:
             - service: switch.turn_on
               target:
@@ -111,7 +113,8 @@
         {% set overview_temp = state_attr('climate.first_floor_heating', 'temperature') %}
         {% set max_proxy_temp = [ state_attr('climate.luke_s_bedroom_heating', 'temperature') | float(0),
                                   state_attr('climate.sophie_s_bedroom_heating', 'temperature') | float(0),
-                                  state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0) ] | max %}
+                                  state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0),
+                                  state_attr('climate.luke_s_office_heating', 'temperature') | float(0) ] | max %}
         {{ overview_temp != max_proxy_temp }}
   action:
     - service: climate.set_temperature
@@ -120,6 +123,7 @@
           - climate.luke_s_bedroom_heating
           - climate.sophie_s_bedroom_heating
           - climate.sophie_s_reading_room_heating
+          - climate.luke_s_office_heating
       data:
         temperature: "{{ state_attr('climate.first_floor_heating', 'temperature') }}"
 
@@ -165,6 +169,7 @@
         - climate.luke_s_bedroom_heating
         - climate.sophie_s_bedroom_heating
         - climate.sophie_s_reading_room_heating
+        - climate.luke_s_office_heating
       attribute: temperature
   action:
     - service: climate.set_temperature
@@ -174,7 +179,8 @@
         temperature: >
           {{ [ state_attr('climate.luke_s_bedroom_heating', 'temperature') | float(0),
                state_attr('climate.sophie_s_bedroom_heating', 'temperature') | float(0),
-               state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0) ] | max }}
+               state_attr('climate.sophie_s_reading_room_heating', 'temperature') | float(0),
+               state_attr('climate.luke_s_office_heating', 'temperature') | float(0) ] | max }}
 
 ####################################################
 # Proxies -> Sync Max Setpoint back up to Overview (GROUND FLOOR)
@@ -240,6 +246,20 @@
     - service: mqtt.publish
       data:
         topic: "zigbee2mqtt/sophies_reading_room_trv/set/external_temperature_input"
+        payload: "{{ trigger.to_state.state }}"
+        retain: false
+
+# NEW: Luke's Office
+- id: 'push_lukes_office_external_temp_to_trv'
+  alias: "Luke's Office: Push Zigbee Temp to TRV"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.lukes_office_zb02p_temperature
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "zigbee2mqtt/lukes_office_trv/set/external_temperature_input"
         payload: "{{ trigger.to_state.state }}"
         retain: false
 
@@ -466,6 +486,59 @@
     - service: climate.set_temperature
       target:
         entity_id: climate.sophie_s_reading_room_heating
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+# ===================================================
+# Luke's Office (NEW)
+# ===================================================
+- id: 'lukes_office_sync_hvac_mode_proxy_to_trv'
+  alias: "Luke's Office: Sync HVAC Mode from Proxy to TRV"
+  mode: queued
+  trigger:
+    - platform: state
+      entity_id: climate.luke_s_office_heating
+      to:
+        - 'heat'
+        - 'off'
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id: climate.lukes_office_trv
+      data:
+        hvac_mode: "{{ trigger.to_state.state }}"
+
+- id: 'lukes_office_proxy_temp_to_trv_temp'
+  alias: "Luke's Office: Sync Proxy Setpoint → TRV"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.luke_s_office_heating
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.lukes_office_trv', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.lukes_office_trv
+      data:
+        temperature: "{{ trigger.to_state.attributes.temperature }}"
+
+- id: 'lukes_office_trv_temp_to_proxy_temp'
+  alias: "Luke's Office: Sync TRV Setpoint → Proxy"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: climate.lukes_office_trv
+      attribute: temperature
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.temperature != state_attr('climate.luke_s_office_heating', 'temperature') }}"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.luke_s_office_heating
       data:
         temperature: "{{ trigger.to_state.attributes.temperature }}"
 
